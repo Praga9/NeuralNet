@@ -1,6 +1,11 @@
 # This script implements neural network functions developed in MatLab for the
 # Stanford ML course in R.
 
+# *****TEMPORARY: Clear Workspace and Load Test Data***********
+rm(list = ls())
+source("loadTestData.R")
+# *************************************************************
+
 # Sigmoid Function
 # Computes J, the sigmoid of z
 sigmoid <- function(z)  1 / (1 + exp(-z))
@@ -33,9 +38,9 @@ NNPredict <- function(x, Theta1, Theta2) {
 NNCost <- function(y, x, k, Theta1, Theta2, lambda = 0){
     
     # Calculate prediction values
-    x <- as.matrix(x)
-    Theta1 <- as.matrix(Theta1)
-    Theta2 <- as.matrix(Theta2)
+    x <- data.matrix(x)
+    Theta1 <- data.matrix(Theta1)
+    Theta2 <- data.matrix(Theta2)
     x  <- cbind(rep(1, nrow(x)), x)
     a2 <- sigmoid(x %*% t(Theta1))
     a2 <- cbind(rep(1, nrow(a2)), a2)
@@ -43,11 +48,12 @@ NNCost <- function(y, x, k, Theta1, Theta2, lambda = 0){
     a3  <- sigmoid(z)
     
     # Reshape y and prediction into a k x m matrix
-    y <- as.vector(y)
+    if(class(y) == "dataframe") y <- data.matrix(y)
     y_matrix <- matrix(0, k, length(y))
     index <- cbind(y, 1:length(y))
     y_matrix[index] <- 1
     pred <- matrix(0, k, length(y))
+    x <- x[, 2:ncol(x)]
     index <- cbind(NNPredict(x, Theta1, Theta2)[,1], 1:length(y))
     pred[index] <- 1
     
@@ -55,5 +61,6 @@ NNCost <- function(y, x, k, Theta1, Theta2, lambda = 0){
     reg <- (lambda / (2 * length(y))) * (sum(sum(Theta1[, 2:ncol(Theta1)]^2)) +
                                              sum(sum(Theta2[, 2:ncol(Theta2)]^2)))
     # Return J
-    reg + sum(sum((-y_matrix * log(a3)) - ((1 - y_matrix * log(1 - a3)))))
+    reg + (sum(sum((-y_matrix %*% log(a3)) - 
+                       ((1 - y_matrix) %*% log(1 - a3))))) / length(y)
 }
